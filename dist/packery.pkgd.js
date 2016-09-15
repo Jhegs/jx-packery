@@ -11,20 +11,19 @@
 
 /**
  * Bridget makes jQuery widgets
- * v2.0.0
+ * v2.0.1
  * MIT license
  */
 
 /* jshint browser: true, strict: true, undef: true, unused: true */
 
 ( function( window, factory ) {
-  'use strict';
-  /* globals define: false, module: false, require: false */
-
+  // universal module definition
+  /*jshint strict: false */ /* globals define, module, require */
   if ( typeof define == 'function' && define.amd ) {
     // AMD
     define( 'jquery-bridget/jquery-bridget',[ 'jquery' ], function( jQuery ) {
-      factory( window, jQuery );
+      return factory( window, jQuery );
     });
   } else if ( typeof module == 'object' && module.exports ) {
     // CommonJS
@@ -41,7 +40,7 @@
   }
 
 }( window, function factory( window, jQuery ) {
-'use strict';
+
 
 // ----- utils ----- //
 
@@ -180,7 +179,7 @@ return jQueryBridget;
   }
 
 })( window, function factory() {
-'use strict';
+
 
 // -------------------------- helpers -------------------------- //
 
@@ -365,7 +364,7 @@ return getSize;
 });
 
 /**
- * EvEmitter v1.0.2
+ * EvEmitter v1.0.3
  * Lil' event emitter
  * MIT License
  */
@@ -374,7 +373,7 @@ return getSize;
 
 ( function( global, factory ) {
   // universal module definition
-  /* jshint strict: false */ /* globals define, module */
+  /* jshint strict: false */ /* globals define, module, window */
   if ( typeof define == 'function' && define.amd ) {
     // AMD - RequireJS
     define( 'ev-emitter/ev-emitter',factory );
@@ -386,7 +385,7 @@ return getSize;
     global.EvEmitter = factory();
   }
 
-}( this, function() {
+}( typeof window != 'undefined' ? window : this, function() {
 
 
 
@@ -529,7 +528,7 @@ return EvEmitter;
 }));
 
 /**
- * Fizzy UI utils v2.0.1
+ * Fizzy UI utils v2.0.3
  * MIT license
  */
 
@@ -700,8 +699,10 @@ utils.debounceMethod = function( _class, methodName, threshold ) {
 // ----- docReady ----- //
 
 utils.docReady = function( callback ) {
-  if ( document.readyState == 'complete' ) {
-    callback();
+  var readyState = document.readyState;
+  if ( readyState == 'complete' || readyState == 'interactive' ) {
+    // do async to allow for other scripts to run. metafizzy/flickity#441
+    setTimeout( callback );
   } else {
     document.addEventListener( 'DOMContentLoaded', callback );
   }
@@ -749,7 +750,7 @@ utils.htmlInit = function( WidgetClass, namespace ) {
       }
       // initialize
       var instance = new WidgetClass( elem, options );
-      // make available via $().data('layoutname')
+      // make available via $().data('namespace')
       if ( jQuery ) {
         jQuery.data( elem, namespace, instance );
       }
@@ -795,7 +796,7 @@ return utils;
   }
 
 }( window, function factory( EvEmitter, getSize ) {
-'use strict';
+
 
 // ----- helpers ----- //
 
@@ -1361,7 +1362,7 @@ return Item;
   }
 
 }( window, function factory( window, EvEmitter, getSize, utils, Item ) {
-'use strict';
+
 
 // ----- vars ----- //
 
@@ -2279,7 +2280,7 @@ return Outlayer;
   }
 
 }( window, function factory() {
-'use strict';
+
 
 // -------------------------- Rect -------------------------- //
 
@@ -2434,7 +2435,7 @@ return Rect;
   }
 
 }( window, function factory( Rect ) {
-'use strict';
+
 
 // -------------------------- Packer -------------------------- //
 
@@ -2638,7 +2639,7 @@ return Packer;
   }
 
 }( window, function factory( Outlayer, Rect ) {
-'use strict';
+
 
 // -------------------------- Item -------------------------- //
 
@@ -2756,12 +2757,12 @@ return Item;
   /* jshint strict: false */ /* globals define, module, require */
   if ( typeof define == 'function' && define.amd ) {
     // AMD
-    define( [
+    define( 'packery/js/packery',[
         'get-size/get-size',
         'outlayer/outlayer',
-        'packery/js/rect',
-        'packery/js/packer',
-        'packery/js/item'
+        './rect',
+        './packer',
+        './item'
       ],
       factory );
   } else if ( typeof module == 'object' && module.exports ) {
@@ -2785,7 +2786,7 @@ return Item;
   }
 
 }( window, function factory( getSize, Outlayer, Rect, Packer, Item ) {
-'use strict';
+
 
 // ----- Rect ----- //
 
@@ -2899,11 +2900,14 @@ proto._getMeasurements = function() {
 
 proto._getItemLayoutPosition = function( item ) {
   this._setRectSize( item.element, item.rect );
-  if ( this.isShifting || this.dragItemCount > 0 ) {
-    var packMethod = this._getPackMethod();
-    this.packer[ packMethod ]( item.rect );
+  if (this.isShifting) {
+      var packMethod = this._getPackMethod();
+      this.packer[packMethod](item.rect);
+  } else if (this.dragItemCount > 0) {
+      var packMethod = 'pack';
+      this.packer[packMethod](item.rect);
   } else {
-    this.packer.pack( item.rect );
+      this.packer.pack(item.rect);
   }
 
   this._setMaxXY( item.rect );

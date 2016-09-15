@@ -157,11 +157,14 @@ proto._getMeasurements = function() {
 
 proto._getItemLayoutPosition = function( item ) {
   this._setRectSize( item.element, item.rect );
-  if ( this.isShifting || this.dragItemCount > 0 ) {
-    var packMethod = this._getPackMethod();
-    this.packer[ packMethod ]( item.rect );
+  if (this.isShifting) {
+      var packMethod = this._getPackMethod();
+      this.packer[packMethod](item.rect);
+  } else if (this.dragItemCount > 0) {
+      var packMethod = 'pack';
+      this.packer[packMethod](item.rect);
   } else {
-    this.packer.pack( item.rect );
+      this.packer.pack(item.rect);
   }
 
   this._setMaxXY( item.rect );
